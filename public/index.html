@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>apiDemo</title>
+    <script
+      src="https://unpkg.com/react@18/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"
+      integrity="sha512-DdX/YwF5e41Ok+AI81HI8f5/5UsoxCVT9GKYZRIzpLxb8Twz4ZwPPX+jQMwMhNQ9b5+zDEefc+dcvQoPWGNZ3g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useEffect, useState } = React;
+
+      function App() {
+        const [todos, setTodos] = useState([]);
+        const [addTodo, setAddTodo] = useState("");
+        const [editTodo, setEditTodo] = useState(null);
+
+        useEffect(() => {
+          getTodos();
+        }, []);
+
+        const getTodos = async () => {
+          const response = await axios.get("/todos");
+          setTodos(response.data);
+        };
+
+        const postTodos = async () => {
+          const response = await axios.post("/todos", {
+            text: addTodo,
+          });
+          getTodos();
+          setAddTodo("");
+        };
+
+        const deleteTodos = async (id) => {
+          const response = await axios.delete(`/todos/${id}`);
+          getTodos();
+        };
+
+        const updataTodos = async () =>{
+            const response = await axios.put(`/todos/${editTodo.id}`,{
+                text: editTodo.text,
+            });
+
+            getTodos();
+            setEditTodo(null);
+        }
+
+        return (
+          <div>
+            <input
+              type="text"
+              value={addTodo}
+              onChange={(e) => {
+                setAddTodo(e.target.value);
+              }}
+            />
+            <button type="button" onClick={() => postTodos()}>
+              新增
+            </button>
+
+            {todos.map((item) => {
+              return (
+                <div key={item.id}>
+                  <p>
+                    {item.text}
+
+                    <button
+                      type="button"
+                      onClick={() => setEditTodo({ ...item })}
+                    >
+                      編輯
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        deleteTodos(item.id);
+                      }}
+                    >
+                      刪除
+                    </button>
+                  </p>
+                </div>
+              );
+            })}
+
+            {editTodo?.id && (
+              <div>
+                <input
+                  type="text"
+                  value={editTodo.text}
+                  onChange={(e) => {
+                    setEditTodo({ ...editTodo, text: e.target.value });
+                  }}
+                />
+                <button type="button" onClick={() => updataTodos()}>確認編輯</button>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.querySelector("#root")).render(<App />);
+    </script>
+  </body>
+</html>
